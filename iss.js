@@ -43,7 +43,7 @@ const fetchCoordsByIP = (ip, callback) => {
       callback(error, null);
       return;
     }
-    
+
     // first check if the body data is a string, if so, convert JSON data into object via json.parse()
     let jsonParsedBody;
     if (typeof body === 'string') {
@@ -68,6 +68,50 @@ const fetchCoordsByIP = (ip, callback) => {
       callback("Coordinates not found", null);
     }
   });
+  
 };
-module.exports = { fetchMyIP, fetchCoordsByIP }; //curly braces means it's exporting more than one value as a single object, or possibly more values later
 
+//----------------------------------------------------------
+
+/**
+ * Makes a single API request to retrieve upcoming ISS fly over times the for the given lat/lng coordinates.
+ * Input:
+ *   - An object with keys `latitude` and `longitude`
+ *   - A callback (to pass back an error or the array of resulting data)
+ * Returns (via Callback):
+ *   - An error, if any (nullable)
+ *   - The fly over times as an array of objects (null if error). Example:
+ *     [ { risetime: 134564234, duration: 600 }, ... ]
+*/
+
+const fetchISSFlyOverTimes = (coords, callback) => {
+
+  const url = `https://iss-flyover.herokuapp.com/json/?lat=${coords.latitude}&lon=${coords.longitude}`
+  
+  needle.get(url, (error, res, body) => {
+    if (error) {
+      callback(error, null);
+      return;
+    }
+
+    if (res.statusCode !== 200) {
+      const msg = `Status code ${res.statusCode}. Response: ${res.body}`;
+      callback(Error(msg), null);
+      return;
+    }
+
+    let jsonParsedBody;
+    if (typeof body === 'string') {
+      jsonParsedBody = JSON.parse(body);
+    } else {
+      jsonParsedBody = body; // if its already an object, just use it as is
+    }
+
+
+    const passes = jsonParsedBody.response;
+    callback(null, passes);
+  });
+};
+
+
+module.exports = { fetchMyIP, fetchCoordsByIP, fetchISSFlyOverTimes }; //curly braces means it's exporting more than one value as a single object, or possibly more values later
