@@ -14,15 +14,15 @@ const fetchMyIP = function(callback) {
   const url = "https://api.ipify.org?format=json";
   // console.log(myIP)
 
-  needle.get(url, (error, res, body) => { // Make a GET request to the IP
+  needle.get(url, (error, response, body) => { // Make a GET request to the IP
     // code will be used to check for errors
     // first set of checks before we try to parse body
     if (error) {
       return callback(error, null); // return error and stop running code
     }
 
-    if (res.statusCode !== 200) { // check if server responded with a non 200 code
-      const msg = `Status code ${res.statusCode} when fetching IP. Response: ${body}`;
+    if (response.statusCode !== 200) { // check if server responded with a non 200 code
+      const msg = `Status code ${response.statusCode} when fetching IP. Response: ${body}`;
       callback(Error(msg), null);
       return;
     }
@@ -38,7 +38,7 @@ const fetchMyIP = function(callback) {
 const fetchCoordsByIP = (ip, callback) => {
   const url = `http://ipwho.is/${ip}`;
 
-  needle.get(url, (error, res, body) => {
+  needle.get(url, (error, response, body) => {
     if (error) {
       callback(error, null);
       return;
@@ -86,16 +86,16 @@ const fetchCoordsByIP = (ip, callback) => {
 
 const fetchISSFlyOverTimes = (coords, callback) => {
 
-  const url = `https://iss-flyover.herokuapp.com/json/?lat=${coords.latitude}&lon=${coords.longitude}`
+  const url = `https://iss-flyover.herokuapp.com/json/?lat=${coords.latitude}&lon=${coords.longitude}`;
   
-  needle.get(url, (error, res, body) => {
+  needle.get(url, (error, response, body) => {
     if (error) {
       callback(error, null);
       return;
     }
 
-    if (res.statusCode !== 200) {
-      const msg = `Status code ${res.statusCode}. Response: ${res.body}`;
+    if (response.statusCode !== 200) {
+      const msg = `Status code ${response.statusCode}. Response: ${response.body}`;
       callback(Error(msg), null);
       return;
     }
@@ -107,11 +107,55 @@ const fetchISSFlyOverTimes = (coords, callback) => {
       jsonParsedBody = body; // if its already an object, just use it as is
     }
 
+    if (!jsonParsedBody.response) {
+      const msg = "No response field in the body";
+      callback(Error(msg), null);
+      return;
+    }
 
     const passes = jsonParsedBody.response;
     callback(null, passes);
   });
 };
 
+//----------------------------------------------------------------------
 
-module.exports = { fetchMyIP, fetchCoordsByIP, fetchISSFlyOverTimes }; //curly braces means it's exporting more than one value as a single object, or possibly more values later
+/**
+ * Orchestrates multiple API requests in order to determine the next 5 upcoming ISS fly overs for the user's current location.
+ * Input:
+ *   - A callback with an error or results.
+ * Returns (via Callback):
+ *   - An error, if any (nullable)
+ *   - The fly-over times as an array (null if error):
+ *     [ { risetime: <number>, duration: <number> }, ... ]
+ */
+
+const nextISSTimesForMyLocation = (callback) => {
+  fetchMyIP((error, ip) => {
+    if (error) {
+      return callback(error, null);
+    }
+
+    console.log("IP fetched:", ip);
+
+    fetchCoordsByIP(ip, (error, coords) => {
+      if (error) {
+        return callback(error, null);
+      }
+      
+      console.log("Coordinates fetched:", coords);
+
+      fetchISSFlyOverTimes(coords, (error, nextPasses) => {
+        if (error) {
+          return callback(error, null);
+        }
+
+        console.log("ISS Flyover times fetched:", nextPasses);
+        callback(null, nextPasses);
+      });
+    });
+  });
+};
+
+
+module.exports = { fetchMyIP, fetchCoordsByIP, fetchISSFlyOverTimes, nextISSTimesForMyLocation }; //curly braces means it's exporting more than one value as a single object, or possibly more values later
