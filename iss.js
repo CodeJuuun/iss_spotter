@@ -27,7 +27,8 @@ const fetchMyIP = function(callback) {
       return;
     }
 
-    const ip = body.ip;
+    const parsedBody = JSON.parse(body);
+    const ip = parsedBody.ip;
     callback(null, ip);
   });
 };
@@ -100,13 +101,7 @@ const fetchISSFlyOverTimes = (coords, callback) => {
       return;
     }
 
-    let jsonParsedBody;
-    if (typeof body === 'string') {
-      jsonParsedBody = JSON.parse(body);
-    } else {
-      jsonParsedBody = body; // if its already an object, just use it as is
-    }
-
+    const jsonParsedBody = JSON.parse(body)
     if (!jsonParsedBody.response) {
       const msg = "No response field in the body";
       callback(Error(msg), null);
@@ -136,21 +131,15 @@ const nextISSTimesForMyLocation = (callback) => {
       return callback(error, null);
     }
 
-    console.log("IP fetched:", ip);
-
     fetchCoordsByIP(ip, (error, coords) => {
       if (error) {
         return callback(error, null);
       }
       
-      console.log("Coordinates fetched:", coords);
-
       fetchISSFlyOverTimes(coords, (error, nextPasses) => {
         if (error) {
           return callback(error, null);
         }
-
-        console.log("ISS Flyover times fetched:", nextPasses);
         callback(null, nextPasses);
       });
     });
