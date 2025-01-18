@@ -1,4 +1,4 @@
-const {nextISSTimesForMyLocation}= require("./iss_promised"); // if exported as an object, then must be importede here as an object as well
+const {nextISSTimesForMyLocation} = require("./iss_promised"); // if exported as an object, then must be importede here as an object as well
 
 const {printPassTimes} = require("./index");
 //--------------------------------------------------------------
@@ -16,5 +16,6 @@ const {printPassTimes} = require("./index");
 //--------------------------------------------------------------
 
 nextISSTimesForMyLocation()
-  .then((passtimes) => {printPassTimes(passtimes);
-  })
+  .then((passtimes) => {
+    printPassTimes(passtimes);
+  });

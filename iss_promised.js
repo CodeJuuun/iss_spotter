@@ -21,29 +21,29 @@ const fetchCoordsByIP = (ip) => {
       const longitude = body.longitude;
       return { latitude, longitude }; // return both as an object
     });
-  };
+};
 
   
-  //--------------------------------------------------------------
-  const fetchISSFlyOverTimes = (coords) => {
-    const latitude = coords.latitude;
-    const longitude = coords.longitude;
-    const url = `https://iss-flyover.herokuapp.com/json/?lat=${latitude}&lon=${longitude}`;
-    return needle("get", url)
-      .then((response) => {
-        // extract the body from the response
-        const body = response.body;
-        const passtimes = body.response; //renamed it for better clearer defined variable
-        return passtimes;
-      })
-    
-  }
-  //--------------------------------------------------------------
-  const nextISSTimesForMyLocation = () => {
-    return fetchMyIP()
-      .then((ip) => fetchCoordsByIP((ip))
+//--------------------------------------------------------------
+const fetchISSFlyOverTimes = (coords) => {
+  const latitude = coords.latitude;
+  const longitude = coords.longitude;
+  const url = `https://iss-flyover.herokuapp.com/json/?lat=${latitude}&lon=${longitude}`;
+  return needle("get", url)
+    .then((response) => {
+      // extract the body from the response
+      const body = response.body;
+      const passtimes = body.response; //renamed it for better clearer defined variable
+      return passtimes;
+    });
+};
+//--------------------------------------------------------------
+const nextISSTimesForMyLocation = () => {
+  return fetchMyIP()
+    .then((ip) => fetchCoordsByIP((ip))
       .then((coords) => fetchISSFlyOverTimes(coords))
       .then((passtimes) => passtimes)
-      );
-    };
-  module.exports = {nextISSTimesForMyLocation}; //if exporting as an object {} then must be required as an object as well
+    );
+};
+
+module.exports = {nextISSTimesForMyLocation}; //if exporting as an object {} then must be required as an object as well
