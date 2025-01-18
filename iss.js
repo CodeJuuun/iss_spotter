@@ -27,8 +27,7 @@ const fetchMyIP = function(callback) {
       return;
     }
 
-    const parsedBody = JSON.parse(body);
-    const ip = parsedBody.ip;
+    const ip = body.ip;
     callback(null, ip);
   });
 };
@@ -101,7 +100,13 @@ const fetchISSFlyOverTimes = (coords, callback) => {
       return;
     }
 
-    const jsonParsedBody = JSON.parse(body)
+    let jsonParsedBody;
+    if (typeof body === 'string') {
+      jsonParsedBody = JSON.parse(body);
+    } else {
+      jsonParsedBody = body;
+    }
+    
     if (!jsonParsedBody.response) {
       const msg = "No response field in the body";
       callback(Error(msg), null);
